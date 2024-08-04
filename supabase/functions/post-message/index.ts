@@ -28,7 +28,9 @@ serve(async (req) => {
 
       const { data, error } = await supabase
         .from('Messages')
-        .insert([{ name, message, image }]);
+        .insert([{ name, message, image }],{
+          returning: 'representation' 
+        }).select().single();
 
       if (error) {
         console.error("Error inserting message:", error);
