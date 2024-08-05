@@ -11,6 +11,16 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 serve(async (req) => {
   console.log("Received request with method:", req.method);
 
+  if (req.method === 'OPTIONS') {
+    return new Response(null, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    });
+  }
+
   if (req.method === "POST") {
     try {
       const body = await req.json();
@@ -39,7 +49,9 @@ serve(async (req) => {
 
       console.log("Message inserted successfully:", data);
       return new Response(JSON.stringify(data), {
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",
+           'Access-Control-Allow-Origin': '*'
+         },
       });
 
     } catch (error) {

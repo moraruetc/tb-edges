@@ -9,6 +9,17 @@ const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 serve(async (req) => {
+
+  if (req.method === 'OPTIONS') {
+    return new Response(null, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    });
+  }
+
   // Query the Messages table
   const { data, error } = await supabase
     .from('Messages')
@@ -19,6 +30,8 @@ serve(async (req) => {
   }
 
   return new Response(JSON.stringify(data), {
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*'
+     },
   });
 });
