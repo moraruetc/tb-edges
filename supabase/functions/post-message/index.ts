@@ -6,7 +6,7 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
 
 // Create a Supabase client
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+//const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 serve(async (req) => {
   console.log("Received request with method:", req.method);
@@ -22,15 +22,40 @@ serve(async (req) => {
   }
 
   if (req.method === "POST") {
+
+     // Extrage JWT token-ul din header-ul Authorization
+    const authHeader = req.headers.get('Authorization');
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+
+    if (!token) {
+      return new Response(
+        JSON.stringify({ message: 'Authorization token is required' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabase = createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      }
+    )
+
     try {
+      
       const body = await req.json();
       console.log("Request body:", body);
 
-      const { name, message, image } = body;
+      const { name, message, image, board_id } = body;
 
-      if (!name || !message || !image) {
-        console.log("Name, message, and image are required");
-        return new Response(JSON.stringify({ error: "Name, message, and image are required" }), {
+      if (!name || !message || !image || !board_id) {
+        console.log("Name, message, and image, board are required");
+        return new Response(JSON.stringify({ error: "Name, message, and image, board_id are required" }), {
           status: 400,
           headers: { "Content-Type": "application/json" },
         });
@@ -38,7 +63,7 @@ serve(async (req) => {
 
       const { data, error } = await supabase
         .from('Messages')
-        .insert([{ name, message, image }],{
+        .insert([{ name, message, image, board_id }],{
           returning: 'representation' 
         }).select().single();
 
